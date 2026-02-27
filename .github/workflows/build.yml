@@ -12,7 +12,7 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # 允许创建 Release
+      contents: write
 
     steps:
       - name: 🧰 Checkout Repository
@@ -21,7 +21,7 @@ jobs:
       - name: 🐹 Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22' # 确保 Go 版本足够新
+          go-version: '1.26' # 🌟 直接拉满，明确要求使用 1.26 版本
           check-latest: true
 
       - name: 🟢 Setup Node.js
@@ -30,9 +30,9 @@ jobs:
           node-version: '20'
 
       - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10
           run_install: false
 
       - name: 🛠️ Run Pre-build Script
@@ -60,7 +60,8 @@ jobs:
           cp -rf apps/web/dist/* wing/webrender/web/
           find wing/webrender/web -type f -size +4k ! -name "*.gz" -exec gzip -9 -k {} \;
 
-          echo ">>> [4/5] 缝合 Go 语言依赖树..."
+          echo ">>> [4/5] 缝合 Go 语言依赖树 (使用 Go 1.26)..."
+          # 🌟 这里去掉了 sed 降级代码，直接使用源码的 1.26 设置
           cd wing
           go mod edit -replace github.com/daeuniverse/dae=../dae-core
           go mod edit -replace github.com/daeuniverse/outbound=../outbound
@@ -69,7 +70,7 @@ jobs:
           # 注入 Wing 兼容性补丁
           wget -qO- https://github.com/daeuniverse/dae-wing/commit/157668a.patch | patch -p1 || true
           
-          # 锁定依赖树，防止 OpenWrt 编译时去网上乱拉
+          # 锁定依赖树
           GOPROXY="https://goproxy.io,direct" go mod tidy
           cd ..
 
@@ -77,18 +78,18 @@ jobs:
           tar -czf "$ROOT_DIR/daed-$PKG_VERSION.tar.gz" wing dae-core outbound quic-go
           echo "打包完成：daed-$PKG_VERSION.tar.gz"
 
-      - name: 🚀 Upload Artifact (提供直接下载)
+      - name: 🚀 Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: daed-source-package
           path: daed-*.tar.gz
           retention-days: 7
 
-      - name: 🏷️ Create GitHub Release (供 OpenWrt 自动拉取)
+      - name: 🏷️ Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: daed-source-latest
-          name: "daed 满血优化版源码 (N5000)"
+          name: "daed 满血优化版源码 (N5000/Go 1.26)"
           body: "包含前端静态资源与 olicesx 优化版核心的预构建源码包。"
           files: daed-*.tar.gz
           prerelease: true
