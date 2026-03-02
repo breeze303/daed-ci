@@ -4,9 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       pkg_version:
-        description: '源码包版本号 (例如: 2026.02.27)'
-        required: true
-        default: '2026.02.27'
+        description: '临时测试版本号 (留空则默认使用下方的固定版本号)'
+        required: false
+  # 每天 UTC 时间 0 点（北京时间早上 8 点）自动执行
+  schedule:
+    - cron: '0 0 * * *'
+
+env:
+  # ⭐ 请在这里手动修改你的固定版本号 ⭐
+  FIXED_PKG_VERSION: '2026.02.27'
 
 jobs:
   build-and-release:
@@ -39,7 +45,12 @@ jobs:
         run: |
           ROOT_DIR="$(pwd)"
           WORK_DIR="$ROOT_DIR/daed_build_temp"
+          
+          # 读取版本号：优先使用手动触发时输入的临时版本号；如果是定时自动触发或未输入，则使用顶部的固定版本号
           PKG_VERSION="${{ github.event.inputs.pkg_version }}"
+          if [ -z "$PKG_VERSION" ]; then
+            PKG_VERSION="${{ env.FIXED_PKG_VERSION }}"
+          fi
 
           echo ">>> [1/6] 创建并进入工作区..."
           mkdir -p "$WORK_DIR" && cd "$WORK_DIR"
