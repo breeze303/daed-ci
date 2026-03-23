@@ -96,7 +96,6 @@ jobs:
           go mod edit -replace github.com/daeuniverse/outbound=../outbound
           go mod edit -replace github.com/daeuniverse/quic-go=../quic-go
           
-          wget -qO- https://github.com/daeuniverse/dae-wing/commit/157668a.patch | patch -p1 || true
           GOPROXY="https://goproxy.cn,direct" GOSUMDB=off go mod tidy
           cd ..
 
