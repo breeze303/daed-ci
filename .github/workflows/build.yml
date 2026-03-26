@@ -6,9 +6,8 @@ on:
       pkg_version:
         description: '临时测试版本号 (留空则默认使用下方的固定版本号)'
         required: false
-  # 每天 UTC 时间 0 点（北京时间早上 8 点）自动执行
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "*/30 * * * *"
 
 env:
   # ⭐ 请在这里手动修改你的固定版本号 ⭐
